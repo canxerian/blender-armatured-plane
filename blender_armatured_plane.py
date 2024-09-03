@@ -20,13 +20,18 @@ class AutoArmatureForQuads(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     size: bpy.props.FloatProperty(name="Size", default=2.0, min=0.1)
-    width: bpy.props.FloatProperty(name="Width", default=2.0, min=0.1)
-    height: bpy.props.FloatProperty(name="Height", default=2.0, min=0.1)
+    aspect: bpy.props.FloatProperty(name="Aspect", default=1.78)
     subdivisions: bpy.props.IntProperty(name="Subdivisions", default=10, min=1)
     
     def execute(self, context):
+        width = self.size * self.aspect;
+        height = self.size;
+        
         # Create a plane
-        bpy.ops.mesh.primitive_plane_add(size=self.size, enter_editmode=False, scale=mathutils.Vector((self.width, self.height, 1)))
+        bpy.ops.mesh.primitive_plane_add(size=self.size, enter_editmode=False)
+        bpy.ops.transform.resize(value=(width, height, 1))
+        bpy.ops.object.transform_apply(scale=True)
+
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.subdivide(number_cuts=self.subdivisions)
         bpy.ops.object.mode_set(mode="OBJECT")
