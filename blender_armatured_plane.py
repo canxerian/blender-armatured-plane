@@ -50,12 +50,14 @@ class AutoArmatureForQuads(bpy.types.Operator):
         top_left = bb_corners[3]
         bottom_left = bb_corners[0]
         mid_left = (top_left + bottom_left) / 2
-        
         top_right = bb_corners[7]
         bottom_right = bb_corners[4]
         mid_right = (top_right + bottom_right) / 2
+        top_middle = (top_left + top_right) / 2
+        bottom_middle = (bottom_left + bottom_right) / 2
 
         tail = mathutils.Vector((self.size * 0.2, 0, 0))
+        top = mathutils.Vector((0, self.size * 0.2, 0))
 
         self.create_bone(armature, "top_left", top_left + tail, top_left)
         self.create_bone(armature, "mid_left", mid_left + tail, mid_left)
@@ -63,6 +65,8 @@ class AutoArmatureForQuads(bpy.types.Operator):
         self.create_bone(armature, "top_right", top_right - tail, top_right)
         self.create_bone(armature, "mid_right", mid_right - tail, mid_right)
         self.create_bone(armature, "bottom_right", bottom_right - tail, bottom_right)
+        self.create_bone(armature, "top_middle", top_middle, top_middle - top)
+        self.create_bone(armature, "bottom_middle", bottom_middle, bottom_middle + top)
 
 
         # Return to object mode
