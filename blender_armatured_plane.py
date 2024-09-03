@@ -22,13 +22,15 @@ class AutoArmatureForQuads(bpy.types.Operator):
     size: bpy.props.FloatProperty(name="Size", default=2.0, min=0.1)
     width: bpy.props.FloatProperty(name="Width", default=2.0, min=0.1)
     height: bpy.props.FloatProperty(name="Height", default=2.0, min=0.1)
-    subdivisions: bpy.props.IntProperty(name="Subdivisions", default=2, min=1)
+    subdivisions: bpy.props.IntProperty(name="Subdivisions", default=10, min=1)
     
     def execute(self, context):
         # Create a plane
         bpy.ops.mesh.primitive_plane_add(size=self.size, enter_editmode=False, scale=mathutils.Vector((self.width, self.height, 1)))
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.subdivide(number_cuts=self.subdivisions)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        
         bpy.ops.object.mode_set(mode="OBJECT")
         
         plane = bpy.context.object
@@ -56,15 +58,16 @@ class AutoArmatureForQuads(bpy.types.Operator):
         top_middle = (top_left + top_right) / 2
         bottom_middle = (bottom_left + bottom_right) / 2
 
-        tail = mathutils.Vector((self.size * 0.2, 0, 0))
-        top = mathutils.Vector((0, self.size * 0.2, 0))
+        bone_size = 0.2
+        tail = mathutils.Vector((self.size * bone_size, 0, 0))
+        top = mathutils.Vector((0, self.size * bone_size, 0))
 
-        self.create_bone(armature, "top_left", top_left + tail, top_left)
-        self.create_bone(armature, "mid_left", mid_left + tail, mid_left)
-        self.create_bone(armature, "bottom_left", bottom_left + tail, bottom_left)
-        self.create_bone(armature, "top_right", top_right - tail, top_right)
-        self.create_bone(armature, "mid_right", mid_right - tail, mid_right)
-        self.create_bone(armature, "bottom_right", bottom_right - tail, bottom_right)
+        self.create_bone(armature, "top_left", top_left, top_left + tail)
+        self.create_bone(armature, "mid_left", mid_left, mid_left + tail)
+        self.create_bone(armature, "bottom_left", bottom_left, bottom_left + tail)
+        self.create_bone(armature, "top_right", top_right, top_right - tail)
+        self.create_bone(armature, "mid_right", mid_right, mid_right - tail)
+        self.create_bone(armature, "bottom_right", bottom_right, bottom_right - tail)
         self.create_bone(armature, "top_middle", top_middle, top_middle - top)
         self.create_bone(armature, "bottom_middle", bottom_middle, bottom_middle + top)
 
