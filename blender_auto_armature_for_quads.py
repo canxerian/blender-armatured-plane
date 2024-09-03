@@ -27,6 +27,10 @@ class AutoArmatureForQuads(bpy.types.Operator):
     def execute(self, context):
         # Create a plane
         bpy.ops.mesh.primitive_plane_add(size=self.size, enter_editmode=False, scale=mathutils.Vector((self.width, self.height, 1)))
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.subdivide(number_cuts=self.subdivisions)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        
         plane = bpy.context.object
 
         # Create armature and bones
