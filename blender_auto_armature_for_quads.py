@@ -19,50 +19,60 @@ class AutoArmatureForQuads(bpy.types.Operator):
     bl_label = "Quad with Armature"
     bl_options = {'REGISTER', 'UNDO'}
 
+    size: bpy.props.FloatProperty(name="Size", default=2.0, min=0.1)
     width: bpy.props.FloatProperty(name="Width", default=2.0, min=0.1)
     height: bpy.props.FloatProperty(name="Height", default=2.0, min=0.1)
-
+    subdivisions: bpy.props.IntProperty(name="Subdivisions", default=2, min=1)
+    
     def execute(self, context):
         # Create a plane
-        bpy.ops.mesh.primitive_plane_add(size=1, enter_editmode=False)
+        bpy.ops.mesh.primitive_plane_add(size=self.size, enter_editmode=False, scale=mathutils.Vector((self.width, self.height, 1)))
         plane = bpy.context.object
-        plane.scale = (self.width / 2, self.height / 2, 1)
 
         # Create armature and bones
-        bpy.ops.object.armature_add(enter_editmode=False)
+        bpy.ops.object.armature_add(enter_editmode=True)
+
+        # Delete
+        bpy.ops.armature.select_all(action='SELECT')
+        bpy.ops.armature.delete()
+
         armature = bpy.context.object
         armature.name = "Quad_Armature"
         bpy.context.view_layer.objects.active = armature
 
-        # Set armature to edit mode to add bones
-        bpy.ops.object.mode_set(mode='EDIT')
-        armature = armature.data
-
         # Define the corners and midpoints
-        top_left = mathutils.Vector((-self.width / 2, self.height / 2, 0))
-        mid_left = mathutils.Vector((-self.width / 2, 0, 0))
-        bottom_left = mathutils.Vector((-self.width / 2, -self.height / 2, 0))
+        bb_corners = [plane.matrix_world @ mathutils.Vector(corner) for corner in plane.bound_box]
 
-        top_right = mathutils.Vector((self.width / 2, self.height / 2, 0))
-        mid_right = mathutils.Vector((self.width / 2, 0, 0))
-        bottom_right = mathutils.Vector((self.width / 2, -self.height / 2, 0))
+        top_left = bb_corners[0]
+        top_right = bb_corners[1]
+        bottom_right = bb_corners[2]
+        bottom_left = bb_corners[3]
+        mid_left = (top_left + bottom_left) / 2
+        mid_right = (top_right + bottom_right) / 2
 
-        self.create_bone(armature, "top_left", top_left)
+        tail = mathutils.Vector((self.size * 0.2, 0, 0))
+
+        self.create_bone(armature, "top_left", top_left + tail, top_left)
+        self.create_bone(armature, "mid_left", mid_left + tail, mid_left)
+        self.create_bone(armature, "bottom_left", bottom_left + tail, bottom_left)
+        self.create_bone(armature, "top_right", top_right - tail, top_right)
+        self.create_bone(armature, "mid_right", mid_right - tail, mid_right)
+        self.create_bone(armature, "bottom_right", bottom_right - tail, bottom_right)
+
+
         # Return to object mode
         bpy.ops.object.mode_set(mode='OBJECT')
-
-        # Parent the plane to the armature
-        # modifier = plane.modifiers.new(name="Armature", type='ARMATURE')
-        # modifier.object = armature
-        # plane.parent = armature
+        
+        plane.select_set(True)
+        armature.select_set(True)
+        bpy.ops.object.parent_set(type='ARMATURE_AUTO')
 
         return {'FINISHED'}
 
-    def create_bone(self, armature, name, head):
-        bone = armature.edit_bones.new(name)
+    def create_bone(self, armature, name, head, tail):
+        bone = armature.data.edit_bones.new(name)
         bone.head = head
-        bone.tail = head + mathutils.Vector((-0.1, 0, 0))
-
+        bone.tail = tail
 
 
 def add_object_button(self, context):
