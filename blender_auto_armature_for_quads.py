@@ -43,11 +43,12 @@ class AutoArmatureForQuads(bpy.types.Operator):
         # Define the corners and midpoints
         bb_corners = [plane.matrix_world @ mathutils.Vector(corner) for corner in plane.bound_box]
 
-        top_left = bb_corners[0]
-        top_right = bb_corners[1]
-        bottom_right = bb_corners[2]
-        bottom_left = bb_corners[3]
+        top_left = bb_corners[3]
+        bottom_left = bb_corners[0]
         mid_left = (top_left + bottom_left) / 2
+        
+        top_right = bb_corners[7]
+        bottom_right = bb_corners[4]
         mid_right = (top_right + bottom_right) / 2
 
         tail = mathutils.Vector((self.size * 0.2, 0, 0))
