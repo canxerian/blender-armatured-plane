@@ -12,6 +12,7 @@ bl_info = {
     "location": "View3D > Add > Mesh > Quad with Armature"
 }
 
+
 class AutoArmatureForQuads(bpy.types.Operator):
     """Add bones to a quad"""
     bl_idname = "mesh.auto_armature_quad"
@@ -35,44 +36,33 @@ class AutoArmatureForQuads(bpy.types.Operator):
 
         # Set armature to edit mode to add bones
         bpy.ops.object.mode_set(mode='EDIT')
-        arm = armature.data
+        armature = armature.data
 
         # Define the corners and midpoints
-        corners = [
-            mathutils.Vector((self.width / 2, self.height / 2, 0)),  # Top Right
-            mathutils.Vector((-self.width / 2, self.height / 2, 0)),  # Top Left
-            mathutils.Vector((-self.width / 2, -self.height / 2, 0)),  # Bottom Left
-            mathutils.Vector((self.width / 2, -self.height / 2, 0))   # Bottom Right
-        ]
+        top_left = mathutils.Vector((-self.width / 2, self.height / 2, 0))
+        mid_left = mathutils.Vector((-self.width / 2, 0, 0))
+        bottom_left = mathutils.Vector((-self.width / 2, -self.height / 2, 0))
 
-        midpoints = [
-            (corners[0] + corners[1]) / 2,  # Top
-            (corners[1] + corners[2]) / 2,  # Left
-            (corners[2] + corners[3]) / 2,  # Bottom
-            (corners[3] + corners[0]) / 2   # Right
-        ]
+        top_right = mathutils.Vector((self.width / 2, self.height / 2, 0))
+        mid_right = mathutils.Vector((self.width / 2, 0, 0))
+        bottom_right = mathutils.Vector((self.width / 2, -self.height / 2, 0))
 
-        # Add bones at corners
-        for i, corner in enumerate(corners):
-            bone = arm.edit_bones.new(f"Corner_{i+1}")
-            bone.head = mathutils.Vector((0, 0, 0))
-            bone.tail = corner
-
-        # Add bones at midpoints
-        for i, midpoint in enumerate(midpoints):
-            bone = arm.edit_bones.new(f"Midpoint_{i+1}")
-            bone.head = mathutils.Vector((0, 0, 0))
-            bone.tail = midpoint
-
+        self.create_bone(armature, "top_left", top_left)
         # Return to object mode
         bpy.ops.object.mode_set(mode='OBJECT')
 
         # Parent the plane to the armature
-        modifier = plane.modifiers.new(name="Armature", type='ARMATURE')
-        modifier.object = armature
-        plane.parent = armature
+        # modifier = plane.modifiers.new(name="Armature", type='ARMATURE')
+        # modifier.object = armature
+        # plane.parent = armature
 
         return {'FINISHED'}
+
+    def create_bone(self, armature, name, head):
+        bone = armature.edit_bones.new(name)
+        bone.head = head
+        bone.tail = head + mathutils.Vector((-0.1, 0, 0))
+
 
 
 def add_object_button(self, context):
