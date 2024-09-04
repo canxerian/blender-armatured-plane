@@ -2,24 +2,25 @@ import bpy
 import mathutils
 
 bl_info = {
-    "name": "Auto Armature for Quads",
+    "name": "Plane with armature",
     "blender": (2, 80, 0),
     "category": "Object",
-    "description": "Adds an armature with bones to 2D quads",
+    "description": "Create a plane with 6 bones",
     "author": "Mark Nguyen",
     "version": (1, 0, 0),
-    "doc_url": "https://github.com/canxerian/blender-auto-armature-for-quads",
-    "location": "View3D > Add > Mesh > Quad with Armature"
+    "doc_url": "https://github.com/canxerian/blender-armatured-plane",
+    "location": "View3D > Add > Mesh > Plane with Armature"
 }
 
 
-class AutoArmatureForQuads(bpy.types.Operator):
-    """Add bones to a quad"""
-    bl_idname = "mesh.auto_armature_quad"
-    bl_label = "Quad with Armature"
+class ArmaturedPlane(bpy.types.Operator):
+    """Create plane with armature"""
+    bl_idname = "mesh.plane_with_armature"
+    bl_label = "Plane with Armature"
     bl_options = {'REGISTER', 'UNDO'}
 
     size: bpy.props.FloatProperty(name="Size", default=2.0, min=0.1)
+    bone_length: bpy.props.FloatProperty(name="Bone length (percentage of size)", default=0.15, min=0.0, max=1.0)
     aspect: bpy.props.FloatProperty(name="Aspect", default=1.78)
     subdivisions: bpy.props.IntProperty(name="Subdivisions", default=10, min=1)
     
@@ -48,7 +49,6 @@ class AutoArmatureForQuads(bpy.types.Operator):
         bpy.ops.armature.delete()
 
         armature = bpy.context.object
-        armature.name = "Quad_Armature"
         bpy.context.view_layer.objects.active = armature
 
         # Define the corners and midpoints
@@ -63,9 +63,8 @@ class AutoArmatureForQuads(bpy.types.Operator):
         top_middle = (top_left + top_right) / 2
         bottom_middle = (bottom_left + bottom_right) / 2
 
-        bone_size = 0.2
-        tail = mathutils.Vector((self.size * bone_size, 0, 0))
-        top = mathutils.Vector((0, self.size * bone_size, 0))
+        tail = mathutils.Vector((self.size * self.bone_length, 0, 0))
+        top = mathutils.Vector((0, self.size * self.bone_length, 0))
 
         self.create_bone(armature, "top_left", top_left, top_left + tail)
         self.create_bone(armature, "mid_left", mid_left, mid_left + tail)
@@ -94,23 +93,23 @@ class AutoArmatureForQuads(bpy.types.Operator):
 
 def add_object_button(self, context):
     self.layout.operator(
-        AutoArmatureForQuads.bl_idname,
-        text="Quad with Armature",
+        ArmaturedPlane.bl_idname,
+        text="Plane with Armature",
         icon='MESH_PLANE'
     )
 
 
 def menu_func(self, context):
-    self.layout.operator(AutoArmatureForQuads.bl_idname)
+    self.layout.operator(ArmaturedPlane.bl_idname)
 
 
 def register():
-    bpy.utils.register_class(AutoArmatureForQuads)
+    bpy.utils.register_class(ArmaturedPlane)
     bpy.types.VIEW3D_MT_mesh_add.append(add_object_button)
 
 
 def unregister():
-    bpy.utils.unregister_class(AutoArmatureForQuads)
+    bpy.utils.unregister_class(ArmaturedPlane)
     bpy.types.VIEW3D_MT_mesh_add.remove(add_object_button)
 
 
